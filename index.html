@@ -41,7 +41,7 @@
       position: absolute;
       opacity: 1;
       pointer-events: none;
-      transform: scale(1) translateY(-100vh);
+      transform: translateY(-100vh);
       animation: fallToPlace 5s linear forwards;
       z-index: 10;
     }
@@ -74,7 +74,7 @@
         opacity: 0.5;
       }
       100% {
-        transform: translateY(0) rotate(var(--element-rotation));
+        transform: translateY(0vh) rotate(var(--element-rotation));
         opacity: 1;
       }
     }
@@ -244,11 +244,8 @@
       const newBlockX = fixedX;
       const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
 
-      // 컨테이너의 실제 높이 계산
-      const containerHeight = container.offsetHeight;
-      const containerBottom = (containerHeight - 50) / window.innerHeight * 100; // 50px 여백
-
-      let groundLevel = containerBottom;
+      // 입력칸 바로 위까지 떨어지도록 고정값 설정
+      let groundLevel = 100; // 100% 맨 아래
 
       existingData.forEach((data) => {
         if (data.xPos !== undefined && data.yPos !== undefined) {
@@ -267,9 +264,9 @@
       const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
       newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
 
-      // 너무 위로 올라가지 않도록
-      if (newYPos < 5) {
-        newYPos = containerBottom;
+      // 절대 위로 올리지 않음 - 무조건 아래쪽에만
+      if (newYPos < 90) {
+        newYPos = 100; // 강제로 100% 맨 아래로
       }
 
       return { xPos: newXPos, yPos: newYPos };
