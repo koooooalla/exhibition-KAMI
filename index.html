@@ -257,8 +257,8 @@
           
           // 닷끼리 거리 계산 (가까우면 위에 쌓기)
           const distance = Math.abs(newDotX - existingDotX);
-          if (distance < 8) { // 8% 이내면 근처로 간주
-            groundLevel = Math.min(groundLevel, existingDotY - 3); // 닷 위에 쌓기
+          if (distance < 15) { // 15% 이내면 근처로 간주 (범위 확대)
+            groundLevel = Math.min(groundLevel, existingDotY - 6); // 닷 위에 더 높이 쌓기
           }
         }
       });
