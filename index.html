@@ -313,30 +313,27 @@
      * GOOGLE SHEETS INTEGRATION
      *******************/
     
-    // 데이터 저장 함수
+    // 데이터 저장 함수 (JSONP 방식)
     async function saveToGoogleSheets(data) {
       try {
-        const response = await fetch(GOOGLE_SCRIPT_URL, {
-          method: 'POST',
-          mode: 'cors',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            action: 'addSubmission',
-            data: {
-              id: data.id,
-              timestamp: new Date(data.timestamp).toISOString(),
-              userId: data.userId,
-              text: data.text,
-              color: data.color,
-              xPos: data.xPos,
-              yPos: data.yPos,
-              rotation: data.rotation,
-              dotOffsetX: data.dotOffsetX,
-              dotOffsetY: data.dotOffsetY
-            }
-          })
+        // JSONP 방식으로 데이터 전송
+        const params = new URLSearchParams({
+          action: 'addSubmission',
+          id: data.id,
+          timestamp: new Date(data.timestamp).toISOString(),
+          userId: data.userId,
+          text: data.text,
+          color: data.color,
+          xPos: data.xPos.toString(),
+          yPos: data.yPos.toString(),
+          rotation: data.rotation.toString(),
+          dotOffsetX: data.dotOffsetX.toString(),
+          dotOffsetY: data.dotOffsetY.toString()
+        });
+
+        const response = await fetch(GOOGLE_SCRIPT_URL + '?' + params.toString(), {
+          method: 'GET',
+          mode: 'cors'
         });
 
         if (!response.ok) {
