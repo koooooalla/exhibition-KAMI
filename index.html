@@ -24,15 +24,14 @@
     }
     #report-container {
       width: 100%;
-      height: calc(100vh - 140px);
+      height: calc(100vh - 120px);
       position: relative;
-      padding-bottom: 20px;
+      overflow: hidden;
     }
     
     @media (max-width: 640px) {
       #report-container {
-        height: calc(100vh - 180px);
-        padding-bottom: 40px;
+        height: calc(100vh - 160px);
       }
     }
 
@@ -184,7 +183,7 @@
     const FIXED_X_SLOTS = [0, 17.5, 35, 52.5, 70]; // 5 lanes
     const MAX_ELEMENT_WIDTH_PERCENT = 30;
     const ELEMENT_VISUAL_HEIGHT_PERCENT = 9;
-    const START_Y_PERCENT = 95; // 맨 아래까지 떨어지도록
+    const START_Y_PERCENT = 100; // 컨테이너 맨 아래
     const HORIZONTAL_JITTER_PERCENT = 5;
     const DOT_MAX_OFFSET_X = 15;
     const DOT_MAX_OFFSET_Y = 5;
@@ -245,7 +244,11 @@
       const newBlockX = fixedX;
       const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
 
-      let groundLevel = START_Y_PERCENT;
+      // 컨테이너의 실제 높이 계산
+      const containerHeight = container.offsetHeight;
+      const containerBottom = (containerHeight - 50) / window.innerHeight * 100; // 50px 여백
+
+      let groundLevel = containerBottom;
 
       existingData.forEach((data) => {
         if (data.xPos !== undefined && data.yPos !== undefined) {
@@ -264,9 +267,9 @@
       const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
       newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
 
-      // 맨 아래까지 떨어지도록 최소값 제한 제거
-      if (newYPos < 0) {
-        newYPos = START_Y_PERCENT;
+      // 너무 위로 올라가지 않도록
+      if (newYPos < 5) {
+        newYPos = containerBottom;
       }
 
       return { xPos: newXPos, yPos: newYPos };
