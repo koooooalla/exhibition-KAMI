@@ -1,394 +1,540 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  />
-  <title>The Emotional Weather Report</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Fonts -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+KR:wght@900&display=swap"
-    rel="stylesheet"
-  />
-  <style>
-    :root {
-      --current-bg-color: 255, 255, 255; /* White Background (RGB) */
-    }
-    body {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
-      background-color: rgb(var(--current-bg-color));
-      transition: background-color 2s ease;
-      overflow: hidden; /* Prevent scrolling from chaotic content */
-    }
-    #report-container {
-      width: 100%;
-      height: calc(100vh - 120px);
-      position: relative;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Emotional Weather Report</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- UPDATED: Noto Sans KR weight changed from 900 (Extra Bold) to 500 (Medium) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+KR:wght@500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Ensures starting color variable is pure white */
+            --current-bg-color: 255, 255, 255; 
+        }
+        body {
+            /* Set Arial Narrow first for English, Noto Sans KR for Korean */
+            font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+            /* Ensures initial background is pure white */
+            background-color: rgb(var(--current-bg-color)); 
+            transition: background-color 2s ease;
+            overflow: hidden; /* Prevent scrolling from chaotic content */
+            /* ADDED: Set default font weight to Light (300) for Arial Narrow */
+            font-weight: 300;
+        }
+        #report-container {
+            /* Restoring height calculation to leave space only for the bottom input bar */
+            width: 100%;
+            height: calc(100vh - 120px); 
+            position: relative;
+        }
+        
+        /* Common style for elements: they are absolutely positioned in their final, fixed spot */
+        .report-element, .color-circle {
+            position: absolute;
+            opacity: 1; 
+            pointer-events: none;
+            /* Start them high up, NO ROTATION APPLIED IN STATIC STYLE */
+            transform: scale(1) translateY(-100vh); 
+            /* Slower, linear animation for snowflake effect */
+            animation: fallToPlace 5s linear forwards; 
+            /* Ensure higher z-index for readability */
+            z-index: 10; 
+        }
 
-    /* Common style for elements: absolutely positioned to their final spot */
-    .report-element,
-    .color-circle {
-      position: absolute;
-      opacity: 1;
-      pointer-events: none;
-      transform: scale(1) translateY(-100vh);
-      animation: fallToPlace 5s linear forwards;
-      z-index: 10;
-    }
+        /* Text Specific Styles */
+        .report-element {
+            color: black; 
+            /* Font size further reduced from 1.5rem to 1.3rem */
+            font-size: 1.3rem; 
+            line-height: 1.2;
+            /* Tighter constraint: Max width reduced to 30% for better packing */
+            max-width: 30%; 
+            /* Padding increases the space between stacked blocks */
+            padding: 8px 6px; 
+            /* ADDED: Ensure the falling text elements are also light weight */
+            font-weight: 300;
+            /* REMOVED background-color for total transparency */
+            border-radius: 4px;
+        }
+        
+        /* Color Circle Specific Styles */
+        .color-circle {
+            width: 30px; 
+            height: 30px; 
+            border-radius: 50%;
+            opacity: 0.8;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Subtle lift */
+            z-index: 5; /* Lower Z-index than text ensures it sits behind the text block */
+        }
 
-    /* Text Specific Styles */
-    .report-element {
-      color: black;
-      font-weight: normal;
-      font-size: 1.75rem;
-      line-height: 1.2;
-      max-width: 30%;
-      padding: 8px 6px;
-      border-radius: 4px;
-    }
+        /* Keyframes for the falling motion */
+        @keyframes fallToPlace {
+            0% {
+                /* Start far above, falling straight down (no rotation) */
+                transform: translateY(-100vh);
+                opacity: 0.5;
+            }
+            100% {
+                /* End at the calculated 'top' position, and apply the final 'crash' rotation */
+                transform: translateY(0) rotate(var(--element-rotation));
+                opacity: 1;
+            }
+        }
 
-    /* Color Circle Specific Styles */
-    .color-circle {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      opacity: 0.8;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      z-index: 5; /* Behind text */
-    }
-
-    /* Falling motion */
-    @keyframes fallToPlace {
-      0% {
-        transform: translateY(-100vh);
-        opacity: 0.5;
-      }
-      100% {
-        transform: translateY(0) rotate(var(--element-rotation));
-        opacity: 1;
-      }
-    }
-
-    /* Color input */
-    #mood-color-picker {
-      appearance: none;
-      -moz-appearance: none;
-      -webkit-appearance: none;
-      border: none;
-      padding: 0;
-      width: 32px;
-      height: 32px;
-      cursor: pointer;
-      border-radius: 50%;
-      overflow: hidden;
-    }
-    #mood-color-picker::-webkit-color-swatch-wrapper {
-      padding: 0;
-    }
-    #mood-color-picker::-webkit-color-swatch {
-      border: none;
-      border-radius: 50%;
-    }
-
-    input::placeholder {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
-    }
-    input,
-    button {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
-    }
-  </style>
+        /* Styling for the color input to make it blend with the design */
+        #mood-color-picker {
+            appearance: none;
+            -moz-appearance: none;
+            -webkit-appearance: none;
+            border: none;
+            padding: 0;
+            /* Fixed small size for the visible area */
+            width: 32px; 
+            height: 32px; 
+            cursor: pointer;
+            border-radius: 50%; /* Make it circular */
+            overflow: hidden;
+        }
+        #mood-color-picker::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        #mood-color-picker::-webkit-color-swatch {
+            border: none;
+            border-radius: 50%; /* Ensure the color swatch itself is circular */
+        }
+        
+        /* Ensure input fields use the correct font as well */
+        input::placeholder {
+            font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+        }
+        input, button {
+            font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+            /* ADDED: Ensure input/button text is light weight */
+            font-weight: 300;
+        }
+    </style>
 </head>
 <body>
-  <!-- Main Display Area -->
-  <div id="report-container" class="relative">
-    <div
-      id="loading-overlay"
-      class="absolute inset-0 flex items-center justify-center bg-white/80 z-20 transition-opacity duration-500"
-    >
-      <div
-        class="text-gray-800 text-xl font-semibold p-4 rounded-lg bg-indigo-200 shadow-xl"
-      >
-        Loading Emotional Archive (Local)...
-      </div>
+
+    <!-- Main Display Area -->
+    <div id="report-container" class="relative">
+        <div id="loading-overlay" class="absolute inset-0 flex items-center justify-center bg-white/80 z-20 transition-opacity duration-500">
+            <!-- REMOVED: font-semibold class -->
+            <div class="text-gray-800 text-xl p-4 rounded-lg bg-indigo-200 shadow-xl">
+                Loading Emotional Archive...
+            </div>
+        </div>
+        <!-- Elements will be injected here -->
     </div>
-    <!-- Elements will be injected here -->
-  </div>
 
-  <!-- Input Form (Fixed to Bottom) -->
-  <div
-    class="fixed bottom-0 left-0 right-0 p-4 bg-gray-100 border-t border-gray-300 shadow-2xl z-10"
-  >
-    <p id="user-info" class="text-xs text-gray-500 mb-2"></p>
-    <form id="submission-form" class="flex flex-col sm:flex-row gap-3 items-center">
-      <input
-        type="text"
-        id="feeling-text"
-        placeholder="What are you feeling right now?"
-        maxlength="300"
-        class="flex-grow p-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
-        required
-      />
+    <!-- Removed AI Report Summary Area -->
 
-      <div class="flex flex-col items-center justify-center flex-shrink-0 px-2 pt-1 sm:pt-0">
-        <span class="text-sm text-gray-700 whitespace-nowrap mb-1">your mood color</span>
-        <input type="color" id="mood-color-picker" value="#f0f0f0" required />
-      </div>
+    <!-- Input Form (Fixed to Bottom - Light Mode) -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-gray-100 border-t border-gray-300 shadow-2xl z-10">
+        <p id="user-info" class="text-xs text-gray-500 mb-2"></p>
+        <form id="submission-form" class="flex flex-col sm:flex-row gap-3 items-center">
+            
+            <!-- Text Input: Takes up most space, max length 300, new placeholder -->
+            <input type="text" id="feeling-text" placeholder="What are you feeling right now?" maxlength="300"
+                   class="flex-grow p-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500" required>
+            
+            <!-- Color Picker Group: Label outside the picker element -->
+            <div class="flex flex-col items-center justify-center flex-shrink-0 px-2 pt-1 sm:pt-0">
+                <span class="text-sm text-gray-700 whitespace-nowrap mb-1">your mood color</span>
+                <input type="color" id="mood-color-picker" value="#f0f0f0" required>
+            </div>
+            
+            <!-- REMOVED: font-bold class from button -->
+            <button type="submit" id="submit-button" 
+                    class="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl transition duration-200 disabled:opacity-50 flex-shrink-0">
+                Send
+            </button>
+        </form>
+        <p id="message-status" class="text-xs mt-2 text-center text-red-600"></p>
+    </div>
 
-      <button
-        type="submit"
-        id="submit-button"
-        class="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg disabled:opacity-50 flex-shrink-0"
-      >
-        Send
-      </button>
-    </form>
-    <p id="message-status" class="text-xs mt-2 text-center text-red-600"></p>
-  </div>
+    <!-- Firebase SDKs and Logic (LLM parts removed) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, onSnapshot, collection, query, addDoc, serverTimestamp, setLogLevel, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <!-- Local (No Firebase) Logic -->
-  <script>
-    /***************
-     * CONFIG/STATE
-     ***************/
-    const APP_ID = "emoweather-local"; // 로컬 버전 앱 ID
-    const STORAGE_KEY = `emotional_weather_report__${APP_ID}`;
+        // Firestore and Auth instances
+        let app;
+        let db;
+        let auth;
+        let userId;
+        let currentSubmissions = []; // Stores the latest list of submissions for stacking calculation
 
-    // UI
-    const container = document.getElementById('report-container');
-    const form = document.getElementById('submission-form');
-    const status = document.getElementById('message-status');
-    const userInfo = document.getElementById('user-info');
-    const loadingOverlay = document.getElementById('loading-overlay');
-    const body = document.body;
+        // Global Set to track elements already rendered on the page to prevent flicker/redraw
+        let renderedElementIds = new Set();
 
-    // Layout constants (원본과 동일)
-    const FIXED_X_SLOTS = [0, 17.5, 35, 52.5, 70]; // 5 lanes
-    const MAX_ELEMENT_WIDTH_PERCENT = 30;
-    const ELEMENT_VISUAL_HEIGHT_PERCENT = 9;
-    const START_Y_PERCENT = 90;
-    const HORIZONTAL_JITTER_PERCENT = 5;
+        // --- HARDCODED FALLBACK FOR EXTERNAL TESTING (e.g., GitHub.io) ---
+        const EXTERNAL_FIREBASE_CONFIG = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+        };
+        const EXTERNAL_AUTH_TOKEN = "placeholder_token"; 
+        const IS_EXTERNAL_RUN = typeof __firebase_config === 'undefined';
 
-    const DOT_MAX_OFFSET_X = 15;
-    const DOT_MAX_OFFSET_Y = 5;
+        // Configuration
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfigRaw = IS_EXTERNAL_RUN ? JSON.stringify(EXTERNAL_FIREBASE_CONFIG) : __firebase_config;
+        const firebaseConfig = JSON.parse(firebaseConfigRaw);
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : EXTERNAL_AUTH_TOKEN;
+        
+        const COLLECTION_NAME = 'emotional_weather_report';
+        setLogLevel('debug'); // Enable Firestore logs
 
-    // Local in-memory state
-    let currentSubmissions = [];           // 전체 데이터
-    const renderedElementIds = new Set();  // 이미 DOM에 그린 id 추적
-    let lastColor = '#FFFFFF';             // 배경 블렌딩용
+        // UI Elements
+        const container = document.getElementById('report-container');
+        const form = document.getElementById('submission-form');
+        const status = document.getElementById('message-status');
+        const userInfo = document.getElementById('user-info');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const body = document.body;
+        
+        // Stacking Constants
+        const FIXED_X_SLOTS = [0, 17.5, 35, 52.5, 70]; // 5 evenly spaced lanes from 0% to 70%
+        const MAX_ELEMENT_WIDTH_PERCENT = 30; // Matches the CSS max-width
+        const ELEMENT_VISUAL_HEIGHT_PERCENT = 9; // Approximate height for spacing
+        const START_Y_PERCENT = 90; // The screen bottom boundary (the absolute floor)
+        const HORIZONTAL_JITTER_PERCENT = 5; 
+        const DOT_MAX_OFFSET_X = 15; // Max offset of 15% screen width
+        const DOT_MAX_OFFSET_Y = 5;  // Max offset of 5% screen height
 
-    /******************
-     * HELPER FUNCTIONS
-     ******************/
-    function hexToRgb(hex) {
-      const bigint = parseInt(hex.slice(1), 16);
-      const r = (bigint >> 16) & 255;
-      const g = (bigint >> 8) & 255;
-      const b = bigint & 255;
-      return `${r}, ${g}, ${b}`;
-    }
 
-    function uuid() {
-      // 간단 UUID (충분히 유니크)
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-        const r = (Math.random() * 16) | 0;
-        const v = c === 'x' ? r : (r & 0x3) | 0x8;
-        return v.toString(16);
-      });
-    }
-
-    function saveToStorage() {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(currentSubmissions));
-      } catch (e) {
-        console.warn('localStorage save failed:', e);
-      }
-    }
-
-    function loadFromStorage() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return [];
-        const arr = JSON.parse(raw);
-        if (!Array.isArray(arr)) return [];
-        return arr;
-      } catch (e) {
-        console.warn('localStorage parse failed:', e);
-        return [];
-      }
-    }
-
-    // 초기 배경값 보정
-    function ensureInitialBackground() {
-      const cssVar = getComputedStyle(document.documentElement)
-        .getPropertyValue('--current-bg-color')
-        .trim();
-      const match = cssVar.match(/^(\d+)\s*,\s*(\d+)\s*,\s*(\d+)$/);
-      const [r, g, b] = match ? match.slice(1).map(n => parseInt(n, 10)) : [255, 255, 255];
-      body.style.setProperty('--current-bg-color', `${r}, ${g}, ${b}`);
-      body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
-    }
-
-    /**********************
-     * STACKING CALC (원본)
-     **********************/
-    function calculateNextLandingPosition(existingData) {
-      const randomIndex = Math.floor(Math.random() * FIXED_X_SLOTS.length);
-      const fixedX = FIXED_X_SLOTS[randomIndex];
-      const newBlockX = fixedX;
-      const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
-
-      let groundLevel = START_Y_PERCENT;
-
-      existingData.forEach((data) => {
-        if (data.xPos !== undefined && data.yPos !== undefined) {
-          const existingBlockRight = data.xPos + MAX_ELEMENT_WIDTH_PERCENT;
-          if (data.xPos < newBlockRight && existingBlockRight > newBlockX) {
-            groundLevel = Math.min(groundLevel, data.yPos);
-          }
+        // Helper function to convert Hex color to RGB string (e.g., '#FF00A0' -> '255, 0, 160')
+        function hexToRgb(hex) {
+            const bigint = parseInt(hex.slice(1), 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+            return `${r}, ${g}, ${b}`;
         }
-      });
 
-      let newYPos = groundLevel - ELEMENT_VISUAL_HEIGHT_PERCENT;
+        // --- LOADER HIDING LOGIC (Reintroducing stable, safe approach) ---
 
-      let newXPos = fixedX;
-      const jitter = Math.random() * 2 * HORIZONTAL_JITTER_PERCENT - HORIZONTAL_JITTER_PERCENT;
-      newXPos += jitter;
+        // Utility to remove the loader from the DOM/click flow immediately
+        function setLoaderInactive() {
+            loadingOverlay.style.opacity = '0';
+            loadingOverlay.style.pointerEvents = 'none'; // CRITICAL: ensures the report is clickable
+            loadingOverlay.style.visibility = 'hidden';  
+        }
 
-      const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
-      newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
+        // Main function to hide the loader with the fade-out effect
+        function hideLoadingOverlay(instant = false) {
+            if (instant) {
+                setLoaderInactive();
+            } else {
+                // Start the fade out animation (500ms transition defined in CSS)
+                loadingOverlay.style.opacity = '0';
+                
+                // Set timeout to match the 500ms CSS transition duration
+                setTimeout(setLoaderInactive, 500); 
+            }
+        }
 
-      if (newYPos < 10) {
-        newYPos = 10 + Math.random() * 5;
-      }
+        // --- 1. INITIALIZATION AND AUTHENTICATION ---
+        async function initializeFirebase() {
+            // New check to warn user if running externally with placeholder config
+            if (IS_EXTERNAL_RUN) {
+                console.warn("Running in external environment. Using placeholder Firebase config.");
+                // We let it continue, but prevent real data operations if keys are placeholders
+                if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    status.textContent = "Warning: (Using placeholder keys: Data will not save)";
+                }
+            }
+            
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                await setPersistence(auth, browserSessionPersistence);
 
-      return { xPos: newXPos, yPos: newYPos };
-    }
+                // Use anonymous sign-in if running externally with placeholder keys
+                if (initialAuthToken === EXTERNAL_AUTH_TOKEN) {
+                    await signInAnonymously(auth);
+                } else {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                }
+                
+                // Safety Mechanism: 3-second fallback to force hide the loader if initialization hangs
+                setTimeout(() => {
+                    if (loadingOverlay.style.opacity !== '0') {
+                        console.warn("Safety mechanism triggered: Forcing loader dismissal.");
+                        hideLoadingOverlay(true); // Force hide
+                        status.textContent = status.textContent || "Connection Timeout: UI released.";
+                    }
+                }, 3000); 
 
-    /*******************
-     * RENDER (증분 렌더)
-     *******************/
-    function renderIncremental(submissions) {
-      // 새로 들어온 것만 DOM에 추가
-      submissions.forEach((data) => {
-        if (!data || renderedElementIds.has(data.id)) return;
-        if (!data.text || !data.color || data.xPos === undefined || data.yPos === undefined || data.rotation === undefined) return;
 
-        // TEXT
-        const el = document.createElement('span');
-        el.className = 'report-element';
-        el.textContent = data.text;
-        el.style.left = `${data.xPos}%`;
-        el.style.top = `${data.yPos}%`;
-        el.style.setProperty('--element-rotation', `${data.rotation}deg`);
-        container.appendChild(el);
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        // COMPLYING with user's request to remove ID display
+                        userInfo.textContent = `Welcome to the shared emotional report.`; 
+                        startRealtimeListener();
+                    } else {
+                        status.textContent = "Error: User is not authenticated.";
+                        hideLoadingOverlay(true); // Hide on auth failure
+                    }
+                });
 
-        // DOT
-        const circle = document.createElement('div');
-        circle.className = 'color-circle';
-        circle.style.backgroundColor = data.color;
-        circle.style.left = `${(data.xPos + (data.dotOffsetX || 0))}%`;
-        circle.style.top = `${(data.yPos + (data.dotOffsetY || 0))}%`;
-        circle.style.setProperty('--element-rotation', `${data.rotation}deg`);
-        container.appendChild(circle);
+            } catch (error) {
+                console.error("Firebase Initialization Error:", error);
+                // If it fails due to invalid placeholder keys (e.g. if the user modifies them externally)
+                if (IS_EXTERNAL_RUN && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                    status.textContent = "Initialization Failed. Check console (Are your custom Firebase keys valid?).";
+                } else {
+                    status.textContent = "Initialization Failed. Check console for details.";
+                }
+                
+                hideLoadingOverlay(true); // Hide on initialization error
+            }
+        }
 
-        renderedElementIds.add(data.id);
-        lastColor = data.color;
-      });
+        // --- 2. DATA PATH & LISTENER ---
+        function getCollectionPath() {
+            // Using the Public Data path for a shared, collective report
+            return `artifacts/${appId}/public/data/${COLLECTION_NAME}`;
+        }
 
-      // 배경 색상 블렌딩
-      if (lastColor && lastColor.startsWith('#')) {
-        const [r, g, b] = hexToRgb(lastColor).split(',').map((n) => parseInt(n.trim(), 10));
-        const match = body.style.backgroundColor.match(/\d+/g);
-        const current = match ? match.map(Number) : [255, 255, 255];
+        function startRealtimeListener() {
+            // Do not start listener if we are running with placeholder keys AND the placeholder key is still present
+            if (IS_EXTERNAL_RUN && firebaseConfig.apiKey === "YOUR_API_KEY") {
+                status.textContent = "UI loaded. Data features disabled (Requires valid Firebase config).";
+                hideLoadingOverlay();
+                return;
+            }
 
-        const newR = Math.round(current[0] * 0.9 + r * 0.1);
-        const newG = Math.round(current[1] * 0.9 + g * 0.1);
-        const newB = Math.round(current[2] * 0.9 + b * 0.1);
+            const q = query(collection(db, getCollectionPath()));
 
-        const newRgbString = `${newR}, ${newG}, ${newB}`;
-        body.style.setProperty('--current-bg-color', newRgbString);
-        body.style.backgroundColor = `rgb(${newRgbString})`;
-      }
-    }
+            onSnapshot(q, (snapshot) => {
+                const submissions = [];
+                snapshot.forEach((doc) => {
+                    submissions.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort by timestamp to ensure consistent rendering order
+                submissions.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+                
+                // Store the latest list of submissions for use in the stacking calculation
+                currentSubmissions = submissions;
 
-    /*******************
-     * FORM SUBMISSION
-     *******************/
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+                renderReport(submissions);
+                
+                // Use the new helper function for clean, timed dismissal
+                hideLoadingOverlay(); 
 
-      const textInput = document.getElementById('feeling-text');
-      const colorInput = document.getElementById('mood-color-picker');
-      const submitButton = document.getElementById('submit-button');
+            }, (error) => {
+                console.error("Firestore Listener Error:", error);
+                status.textContent = "Error loading data. Check console.";
+                hideLoadingOverlay(true); // Instant hide on listener error
+            });
+        }
 
-      const text = textInput.value.trim();
-      const color = colorInput.value;
+        // --- 3. RENDERING LOGIC (Optimized for No Flicker) ---
+        let lastColor = '#FFFFFF'; 
 
-      if (!text || !color) {
-        status.textContent = 'Please enter your feeling and select a color.';
-        return;
-      }
+        function renderReport(submissions) {
+            // Clear the container only on the very first load
+            if (renderedElementIds.size === 0) {
+                 container.innerHTML = '';
+            }
+            
+            submissions.forEach((data) => {
+                // Since the circles are now tied to the text blocks, we only check for text block data
+                if (renderedElementIds.has(data.id)) return;
 
-      submitButton.disabled = true;
-      status.textContent = 'Saving...';
+                // Ensure essential data fields are present
+                if (!data.text || !data.color || data.xPos === undefined || data.yPos === undefined || data.rotation === undefined) return;
 
-      // 위치 계산 (현재 메모리 상 데이터 기준)
-      const { xPos: fixedX, yPos: fixedY } = calculateNextLandingPosition(currentSubmissions);
-      const fixedRot = Math.random() * 30 - 15;
-      const dotOffsetX = Math.random() * DOT_MAX_OFFSET_X - DOT_MAX_OFFSET_X / 2;
-      const dotOffsetY = Math.random() * DOT_MAX_OFFSET_Y - DOT_MAX_OFFSET_Y / 2;
+                // --- Read FIXED, PERSISTENT Values from Firestore ---
+                const targetX = data.xPos; 
+                const targetY = data.yPos; 
+                const rotation = data.rotation;
+                // NEW: Read dot offsets, default to 0 if not present (for old data)
+                const dotOffsetX = data.dotOffsetX || 0; 
+                const dotOffsetY = data.dotOffsetY || 0; 
+                
+                // 1. TEXT ELEMENT
+                const el = document.createElement('span');
+                el.className = 'report-element';
+                el.textContent = data.text;
+                el.style.color = 'black'; 
 
-      const doc = {
-        id: uuid(),
-        text,
-        color,
-        xPos: fixedX,
-        yPos: fixedY,
-        rotation: fixedRot,
-        dotOffsetX,
-        dotOffsetY,
-        timestamp: Date.now(),
-        userId: 'local', // 로컬 모드 표기용
-      };
+                // Set the element's FIXED, final resting spot using standard CSS properties
+                el.style.left = `${targetX}%`;
+                el.style.top = `${targetY}%`; 
+                
+                // Set CSS variable for the animation keyframes (this holds the 'crashed' angle)
+                el.style.setProperty('--element-rotation', `${rotation}deg`);
 
-      currentSubmissions.push(doc);
-      // 시간 순서 유지
-      currentSubmissions.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                container.appendChild(el);
 
-      saveToStorage();
-      renderIncremental([doc]); // 새로 추가된 것만 그리기
 
-      textInput.value = '';
-      submitButton.disabled = false;
-      status.textContent = 'Feeling saved (local).';
-      setTimeout(() => (status.textContent = ''), 2000);
-    });
+                // 2. COLOR CIRCLE ELEMENT (Now uses the same coordinates)
+                const circle = document.createElement('div');
+                circle.className = 'color-circle';
+                circle.style.backgroundColor = data.color;
 
-    /*******************
-     * BOOTSTRAP (LOCAL)
-     *******************/
-    (function boot() {
-      ensureInitialBackground();
+                // Use the FIXED X/Y values from the text block, PLUS the random offset
+                circle.style.left = `${targetX + dotOffsetX}%`; 
+                circle.style.top = `${targetY + dotOffsetY}%`;
+                
+                // Use the same rotation as the text block
+                circle.style.setProperty('--element-rotation', `${rotation}deg`); 
 
-      userInfo.textContent =
-        'Local Mode • Data is saved only in this browser (via localStorage).';
+                container.appendChild(circle);
+                
+                // Mark the element as rendered so it is ignored on the next snapshot
+                renderedElementIds.add(data.id);
 
-      // 저장된 데이터 불러오기
-      currentSubmissions = loadFromStorage();
-      currentSubmissions.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+                
+                // Update the last color (stored as hex) for background blending
+                lastColor = data.color;
+            });
+            
+            // Softly blend the background towards the last submitted color
+            if (lastColor.startsWith('#')) {
+                const [r, g, b] = hexToRgb(lastColor).split(',').map(n => parseInt(n.trim()));
+                const currentBg = body.style.backgroundColor.match(/\d+/g).map(Number);
+                
+                const newR = Math.round(currentBg[0] * 0.9 + r * 0.1);
+                const newG = Math.round(currentBg[1] * 0.9 + g * 0.1);
+                const newB = Math.round(currentBg[2] * 0.9 + b * 0.1);
 
-      // 최초 1회 전체 렌더
-      renderIncremental(currentSubmissions);
+                const newRgbString = `${newR}, ${newG}, ${newB}`;
+                body.style.setProperty('--current-bg-color', newRgbString);
+                body.style.backgroundColor = `rgb(${newRgbString})`;
+            }
+        }
 
-      // 로딩 오버레이 제거
-      loadingOverlay.style.opacity = '0';
-      loadingOverlay.style.visibility = 'hidden';
-    })();
-  </script>
+        // --- 4. SIMPLE GRAVITY/STACKING LOGIC (UPDATED FOR JITTER) ---
+        function calculateNextLandingPosition(existingData) {
+            
+            // 1. Randomly choose one fixed slot (X position) to force broad horizontal spread
+            const randomIndex = Math.floor(Math.random() * FIXED_X_SLOTS.length);
+            const fixedX = FIXED_X_SLOTS[randomIndex];
+            const newBlockX = fixedX;
+            const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
+
+            // 2. Determine the ground level *for this specific random slot*.
+            let groundLevel = START_Y_PERCENT;
+
+            existingData.forEach(data => {
+                if (data.xPos !== undefined && data.yPos !== undefined) {
+                    // Define the horizontal area of the existing block
+                    const existingBlockRight = data.xPos + MAX_ELEMENT_WIDTH_PERCENT;
+
+                    // Check for horizontal overlap with the new, randomly chosen block's area.
+                    if (data.xPos < newBlockRight && existingBlockRight > newBlockX) {
+                        // If they overlap, the new ground level is the lowest point reached by an existing block in this area
+                        groundLevel = Math.min(groundLevel, data.yPos);
+                    }
+                }
+            });
+            
+            // 3. Calculate new Y position: current ground level - block height
+            let newYPos = groundLevel - ELEMENT_VISUAL_HEIGHT_PERCENT;
+            
+            // 4. Start with the fixed slot X position
+            let newXPos = fixedX; 
+
+            // 5. Apply JITTER to break up the vertical column look
+            const jitter = (Math.random() * 2 * HORIZONTAL_JITTER_PERCENT) - HORIZONTAL_JITTER_PERCENT;
+            newXPos += jitter;
+
+            // 6. Clamp the final X position to prevent blocks from going off screen
+            const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT; // 70%
+            newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
+
+
+            // Safety check: prevent blocks from stacking too high up the screen
+            if (newYPos < 10) { 
+                newYPos = 10 + Math.random() * 5; 
+            }
+
+            return {
+                xPos: newXPos,
+                yPos: newYPos,
+            };
+        }
+
+
+        // --- 5. FORM SUBMISSION (Saves fixed position data) ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const textInput = document.getElementById('feeling-text');
+            const colorInput = document.getElementById('mood-color-picker');
+            const submitButton = document.getElementById('submit-button');
+
+            const text = textInput.value.trim();
+            const color = colorInput.value; 
+
+            if (!text || !color) {
+                status.textContent = "Please enter your feeling and select a color.";
+                return;
+            }
+
+            // --- CALCULATE FIXED, PERSISTENT POSITION DATA FOR TEXT BLOCK (Using Gravity) ---
+            const { xPos: fixedX, yPos: fixedY } = calculateNextLandingPosition(currentSubmissions);
+
+            // Fixed rotation for the text block: the 'crashed' angle
+            const fixedRot = Math.random() * 30 - 15; // -15 to +15 degrees
+            
+            // Randomized Dot Placement
+            const dotOffsetX = (Math.random() * DOT_MAX_OFFSET_X) - (DOT_MAX_OFFSET_X / 2); // e.g., -7.5 to +7.5
+            const dotOffsetY = (Math.random() * DOT_MAX_OFFSET_Y) - (DOT_MAX_OFFSET_Y / 2); // e.g., -2.5 to +2.5
+
+            submitButton.disabled = true;
+            status.textContent = "Sending...";
+            
+            // Prevent submission if using placeholder keys
+            if (IS_EXTERNAL_RUN && firebaseConfig.apiKey === "YOUR_API_KEY") {
+                status.textContent = "Submission Failed: Cannot save data with placeholder keys.";
+                submitButton.disabled = false;
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, getCollectionPath()), {
+                    text: text,
+                    color: color, 
+                    // Text block and Circle positions are now the same (unified unit)
+                    xPos: fixedX,
+                    yPos: fixedY,
+                    rotation: fixedRot,
+                    dotOffsetX: dotOffsetX, // Store dot offset
+                    dotOffsetY: dotOffsetY, // Store dot offset
+                    timestamp: serverTimestamp(),
+                    userId: userId,
+                });
+                
+                textInput.value = '';
+
+                status.textContent = "Feeling sent! Look at the report.";
+                setTimeout(() => status.textContent = '', 3000);
+
+            } catch (error) {
+                console.error("Error submitting data:", error);
+                status.textContent = "Submission failed. Try again.";
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+
+        // --- START APP ---
+        initializeFirebase();
+
+    </script>
 </body>
 </html>
