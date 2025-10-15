@@ -136,8 +136,9 @@
                 <input type="color" id="mood-color-picker" value="#f0f0f0" required>
             </div>
             
+            <!-- NOTE: The 'shadow-lg' class was removed from the button to make it flat, as requested. -->
             <button type="submit" id="submit-button" 
-                    class="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg disabled:opacity-50 flex-shrink-0">
+                    class="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 disabled:opacity-50 flex-shrink-0">
                 Send
             </button>
         </form>
@@ -150,8 +151,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, onSnapshot, collection, query, addDoc, serverTimestamp, setLogLevel, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- GEMINI API CONFIGURATION (Removed) ---
-
         // Firestore and Auth instances
         let app;
         let db;
@@ -162,10 +161,24 @@
         // Global Set to track elements already rendered on the page to prevent flicker/redraw
         let renderedElementIds = new Set();
 
+        // --- HARDCODED FALLBACK FOR EXTERNAL TESTING (e.g., GitHub.io) ---
+        const EXTERNAL_FIREBASE_CONFIG = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID",
+        };
+        const EXTERNAL_AUTH_TOKEN = "placeholder_token"; 
+        const IS_EXTERNAL_RUN = typeof __firebase_config === 'undefined';
+
         // Configuration
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        const firebaseConfigRaw = IS_EXTERNAL_RUN ? JSON.stringify(EXTERNAL_FIREBASE_CONFIG) : __firebase_config;
+        const firebaseConfig = JSON.parse(firebaseConfigRaw);
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : EXTERNAL_AUTH_TOKEN;
+        
         const COLLECTION_NAME = 'emotional_weather_report';
         setLogLevel('debug'); // Enable Firestore logs
 
@@ -176,18 +189,13 @@
         const userInfo = document.getElementById('user-info');
         const loadingOverlay = document.getElementById('loading-overlay');
         const body = document.body;
-        // Removed LLM UI elements
         
         // Stacking Constants
         const FIXED_X_SLOTS = [0, 17.5, 35, 52.5, 70]; // 5 evenly spaced lanes from 0% to 70%
         const MAX_ELEMENT_WIDTH_PERCENT = 30; // Matches the CSS max-width
         const ELEMENT_VISUAL_HEIGHT_PERCENT = 9; // Approximate height for spacing
         const START_Y_PERCENT = 90; // The screen bottom boundary (the absolute floor)
-        
-        // NEW: Max horizontal shift applied after calculating the column, to break up vertical lines
         const HORIZONTAL_JITTER_PERCENT = 5; 
-        
-        // Dot Randomization Constants
         const DOT_MAX_OFFSET_X = 15; // Max offset of 15% screen width
         const DOT_MAX_OFFSET_Y = 5;  // Max offset of 5% screen height
 
@@ -201,11 +209,37 @@
             return `${r}, ${g}, ${b}`;
         }
 
+        // --- LOADER HIDING LOGIC (Reintroducing stable, safe approach) ---
+
+        // Utility to remove the loader from the DOM/click flow immediately
+        function setLoaderInactive() {
+            loadingOverlay.style.opacity = '0';
+            loadingOverlay.style.pointerEvents = 'none'; // CRITICAL: ensures the report is clickable
+            loadingOverlay.style.visibility = 'hidden';  
+        }
+
+        // Main function to hide the loader with the fade-out effect
+        function hideLoadingOverlay(instant = false) {
+            if (instant) {
+                setLoaderInactive();
+            } else {
+                // Start the fade out animation (500ms transition defined in CSS)
+                loadingOverlay.style.opacity = '0';
+                
+                // Set timeout to match the 500ms CSS transition duration
+                setTimeout(setLoaderInactive, 500); 
+            }
+        }
+
         // --- 1. INITIALIZATION AND AUTHENTICATION ---
         async function initializeFirebase() {
-            if (!firebaseConfig) {
-                status.textContent = "Error: Firebase config not found.";
-                return;
+            // New check to warn user if running externally with placeholder config
+            if (IS_EXTERNAL_RUN) {
+                console.warn("Running in external environment. Using placeholder Firebase config.");
+                // We let it continue, but prevent real data operations if keys are placeholders
+                if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+                    status.textContent = "Warning: (Using placeholder keys: Data will not save)";
+                }
             }
             
             try {
@@ -215,27 +249,45 @@
                 
                 await setPersistence(auth, browserSessionPersistence);
 
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                } else {
+                // Use anonymous sign-in if running externally with placeholder keys
+                if (initialAuthToken === EXTERNAL_AUTH_TOKEN) {
                     await signInAnonymously(auth);
+                } else {
+                    await signInWithCustomToken(auth, initialAuthToken);
                 }
                 
+                // Safety Mechanism: 3-second fallback to force hide the loader if initialization hangs
+                setTimeout(() => {
+                    if (loadingOverlay.style.opacity !== '0') {
+                        console.warn("Safety mechanism triggered: Forcing loader dismissal.");
+                        hideLoadingOverlay(true); // Force hide
+                        status.textContent = status.textContent || "Connection Timeout: UI released.";
+                    }
+                }, 3000); 
+
+
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         userId = user.uid;
-                        userInfo.textContent = `User ID: ${userId.substring(0, 8)}... (used for private data, this is a public report)`;
+                        // COMPLYING with user's request to remove ID display
+                        userInfo.textContent = `Welcome to the shared emotional report.`; 
                         startRealtimeListener();
                     } else {
                         status.textContent = "Error: User is not authenticated.";
+                        hideLoadingOverlay(true); // Hide on auth failure
                     }
                 });
 
             } catch (error) {
                 console.error("Firebase Initialization Error:", error);
-                status.textContent = "Initialization Failed. Check console for details.";
-                loadingOverlay.style.opacity = '0';
-                loadingOverlay.style.visibility = 'hidden';
+                // If it fails due to invalid placeholder keys (e.g. if the user modifies them externally)
+                if (IS_EXTERNAL_RUN && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+                    status.textContent = "Initialization Failed. Check console (Are your custom Firebase keys valid?).";
+                } else {
+                    status.textContent = "Initialization Failed. Check console for details.";
+                }
+                
+                hideLoadingOverlay(true); // Hide on initialization error
             }
         }
 
@@ -246,6 +298,13 @@
         }
 
         function startRealtimeListener() {
+            // Do not start listener if we are running with placeholder keys AND the placeholder key is still present
+            if (IS_EXTERNAL_RUN && firebaseConfig.apiKey === "YOUR_API_KEY") {
+                status.textContent = "UI loaded. Data features disabled (Requires valid Firebase config).";
+                hideLoadingOverlay();
+                return;
+            }
+
             const q = query(collection(db, getCollectionPath()));
 
             onSnapshot(q, (snapshot) => {
@@ -261,12 +320,14 @@
                 currentSubmissions = submissions;
 
                 renderReport(submissions);
-                loadingOverlay.style.opacity = '0';
-                loadingOverlay.style.visibility = 'hidden';
+                
+                // Use the new helper function for clean, timed dismissal
+                hideLoadingOverlay(); 
 
             }, (error) => {
                 console.error("Firestore Listener Error:", error);
                 status.textContent = "Error loading data. Check console.";
+                hideLoadingOverlay(true); // Instant hide on listener error
             });
         }
 
@@ -283,6 +344,7 @@
                 // Since the circles are now tied to the text blocks, we only check for text block data
                 if (renderedElementIds.has(data.id)) return;
 
+                // Ensure essential data fields are present
                 if (!data.text || !data.color || data.xPos === undefined || data.yPos === undefined || data.rotation === undefined) return;
 
                 // --- Read FIXED, PERSISTENT Values from Firestore ---
@@ -364,10 +426,8 @@
                     const existingBlockRight = data.xPos + MAX_ELEMENT_WIDTH_PERCENT;
 
                     // Check for horizontal overlap with the new, randomly chosen block's area.
-                    // This determines if the existing block provides support.
                     if (data.xPos < newBlockRight && existingBlockRight > newBlockX) {
                         // If they overlap, the new ground level is the lowest point reached by an existing block in this area
-                        // The 'lowest' point is the smallest Y value (closest to the top of the screen)
                         groundLevel = Math.min(groundLevel, data.yPos);
                     }
                 }
@@ -422,13 +482,19 @@
             // Fixed rotation for the text block: the 'crashed' angle
             const fixedRot = Math.random() * 30 - 15; // -15 to +15 degrees
             
-            // Key Edit 2: Randomized Dot Placement
-            // Calculates random offsets relative to the text block's fixed position
+            // Randomized Dot Placement
             const dotOffsetX = (Math.random() * DOT_MAX_OFFSET_X) - (DOT_MAX_OFFSET_X / 2); // e.g., -7.5 to +7.5
             const dotOffsetY = (Math.random() * DOT_MAX_OFFSET_Y) - (DOT_MAX_OFFSET_Y / 2); // e.g., -2.5 to +2.5
 
             submitButton.disabled = true;
             status.textContent = "Sending...";
+            
+            // Prevent submission if using placeholder keys
+            if (IS_EXTERNAL_RUN && firebaseConfig.apiKey === "YOUR_API_KEY") {
+                status.textContent = "Submission Failed: Cannot save data with placeholder keys.";
+                submitButton.disabled = false;
+                return;
+            }
 
             try {
                 await addDoc(collection(db, getCollectionPath()), {
@@ -457,10 +523,6 @@
             }
         });
 
-        // --- Removed GEMINI REPORT GENERATION LOGIC ---
-
-        // --- EVENT LISTENERS (Removed LLM Listener) ---
-        
         // --- START APP ---
         initializeFirebase();
 
