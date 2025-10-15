@@ -239,36 +239,45 @@
      * STACKING CALCULATION
      **********************/
     function calculateNextLandingPosition(existingData) {
-      const randomIndex = Math.floor(Math.random() * FIXED_X_SLOTS.length);
-      const fixedX = FIXED_X_SLOTS[randomIndex];
-      const newBlockX = fixedX;
-      const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
-
+      // 완전 랜덤 X 위치 (더 자연스러운 분포)
+      const randomX = Math.random() * (100 - MAX_ELEMENT_WIDTH_PERCENT);
+      
       let groundLevel = START_Y_PERCENT;
 
+      // 닷 위치 기준으로 충돌 검사
       existingData.forEach((data) => {
         if (data.xPos !== undefined && data.yPos !== undefined) {
-          const existingBlockRight = data.xPos + MAX_ELEMENT_WIDTH_PERCENT;
-          if (data.xPos < newBlockRight && existingBlockRight > newBlockX) {
-            groundLevel = Math.min(groundLevel, data.yPos);
+          // 기존 닷의 실제 위치 계산
+          const existingDotX = data.xPos + (data.dotOffsetX || 0);
+          const existingDotY = data.yPos + (data.dotOffsetY || 0);
+          
+          // 새 닷 위치 (임시)
+          const newDotOffsetX = Math.random() * DOT_MAX_OFFSET_X - DOT_MAX_OFFSET_X / 2;
+          const newDotX = randomX + newDotOffsetX;
+          
+          // 닷끼리 거리 계산 (가까우면 위에 쌓기)
+          const distance = Math.abs(newDotX - existingDotX);
+          if (distance < 8) { // 8% 이내면 근처로 간주
+            groundLevel = Math.min(groundLevel, existingDotY - 3); // 닷 위에 쌓기
           }
         }
       });
 
-      let newYPos = groundLevel - ELEMENT_VISUAL_HEIGHT_PERCENT;
+      let newYPos = groundLevel;
+      let newXPos = randomX;
 
-      let newXPos = fixedX;
-      const jitter = Math.random() * 2 * HORIZONTAL_JITTER_PERCENT - HORIZONTAL_JITTER_PERCENT;
-      newXPos += jitter;
-
-      const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
-      newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
-
+      // 최소 높이 제한
       if (newYPos < 10) {
         newYPos = 10 + Math.random() * 5;
       }
 
-      return { xPos: newXPos, yPos: newYPos };
+      return { 
+        xPos: newXPos, 
+        yPos: newYPos,
+        // 미리 닷 오프셋 계산해서 반환
+        dotOffsetX: Math.random() * DOT_MAX_OFFSET_X - DOT_MAX_OFFSET_X / 2,
+        dotOffsetY: Math.random() * DOT_MAX_OFFSET_Y - DOT_MAX_OFFSET_Y / 2
+      };
     }
 
     /*******************
@@ -426,11 +435,9 @@
       submitButton.disabled = true;
 
       try {
-        // Calculate position
-        const { xPos: fixedX, yPos: fixedY } = calculateNextLandingPosition(currentSubmissions);
+        // Calculate position (닷 기준으로 계산됨)
+        const { xPos: fixedX, yPos: fixedY, dotOffsetX, dotOffsetY } = calculateNextLandingPosition(currentSubmissions);
         const fixedRot = Math.random() * 30 - 15;
-        const dotOffsetX = Math.random() * DOT_MAX_OFFSET_X - DOT_MAX_OFFSET_X / 2;
-        const dotOffsetY = Math.random() * DOT_MAX_OFFSET_Y - DOT_MAX_OFFSET_Y / 2;
 
         const submissionData = {
           id: uuid(),
