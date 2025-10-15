@@ -19,14 +19,21 @@
     }
     body {
       font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
-      background-color: rgb(var(--current-bg-color));
-      transition: background-color 2s ease;
+      background-color: white;
       overflow: hidden; /* Prevent scrolling from chaotic content */
     }
     #report-container {
       width: 100%;
-      height: calc(100vh - 120px);
+      height: calc(100vh - 140px);
       position: relative;
+      padding-bottom: 20px;
+    }
+    
+    @media (max-width: 640px) {
+      #report-container {
+        height: calc(100vh - 180px);
+        padding-bottom: 40px;
+      }
     }
 
     /* Common style for elements: absolutely positioned to their final spot */
@@ -125,10 +132,11 @@
 
   <!-- Input Form (Fixed to Bottom) -->
   <div
-    class="fixed bottom-0 left-0 right-0 p-4 bg-gray-100 border-t border-gray-300 shadow-2xl z-10"
+    class="fixed bottom-0 left-0 right-0 p-4 bg-gray-100 border-t border-gray-300 shadow-2xl z-50"
+    style="min-height: 120px;"
   >
     <p id="user-info" class="text-xs text-gray-500 mb-2"></p>
-    <form id="submission-form" class="flex flex-col sm:flex-row gap-3 items-center">
+    <form id="submission-form" class="flex flex-col gap-3 sm:flex-row sm:gap-3 sm:items-center">
       <input
         type="text"
         id="feeling-text"
@@ -138,18 +146,20 @@
         required
       />
 
-      <div class="flex flex-col items-center justify-center flex-shrink-0 px-2 pt-1 sm:pt-0">
-        <span class="text-sm text-gray-700 whitespace-nowrap mb-1">your mood color</span>
-        <input type="color" id="mood-color-picker" value="#6366f1" required />
-      </div>
+      <div class="flex flex-row gap-3 items-center justify-center sm:flex-col sm:gap-0">
+        <div class="flex flex-col items-center justify-center flex-shrink-0">
+          <span class="text-xs text-gray-700 whitespace-nowrap mb-1">your mood color</span>
+          <input type="color" id="mood-color-picker" value="#6366f1" required />
+        </div>
 
-      <button
-        type="submit"
-        id="submit-button"
-        class="w-full sm:w-32 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg disabled:opacity-50 flex-shrink-0"
-      >
-        Send
-      </button>
+        <button
+          type="submit"
+          id="submit-button"
+          class="flex-1 sm:w-32 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-lg disabled:opacity-50"
+        >
+          Send
+        </button>
+      </div>
     </form>
     <p id="message-status" class="text-xs mt-2 text-center text-red-600"></p>
   </div>
@@ -293,20 +303,7 @@
         lastColor = data.color;
       });
 
-      // Background color blending
-      if (lastColor && lastColor.startsWith('#')) {
-        const [r, g, b] = hexToRgb(lastColor).split(',').map((n) => parseInt(n.trim(), 10));
-        const match = body.style.backgroundColor.match(/\d+/g);
-        const current = match ? match.map(Number) : [255, 255, 255];
-
-        const newR = Math.round(current[0] * 0.9 + r * 0.1);
-        const newG = Math.round(current[1] * 0.9 + g * 0.1);
-        const newB = Math.round(current[2] * 0.9 + b * 0.1);
-
-        const newRgbString = `${newR}, ${newG}, ${newB}`;
-        body.style.setProperty('--current-bg-color', newRgbString);
-        body.style.backgroundColor = `rgb(${newRgbString})`;
-      }
+      // 배경색 고정 (변경하지 않음)
     }
 
     /*******************
