@@ -397,13 +397,7 @@
 
     // 연결 상태 업데이트
     function updateConnectionStatus() {
-      if (isConnected) {
-        userInfo.textContent = `Real-time Mode • User ID: ${userId} • Shared via Google Sheets`;
-        userInfo.className = 'text-xs text-green-600 mb-2';
-      } else {
-        userInfo.textContent = `Connecting... • User ID: ${userId} • Check Google Sheets connection`;
-        userInfo.className = 'text-xs text-red-600 mb-2';
-      }
+      // 연결 상태 표시 제거
     }
 
     // 주기적 폴링 시작
@@ -431,12 +425,10 @@
       const color = colorInput.value;
 
       if (!text || !color) {
-        status.textContent = 'Please enter your feeling and select a color.';
         return;
       }
 
       submitButton.disabled = true;
-      status.textContent = 'Sending...';
 
       try {
         // Calculate position
@@ -467,11 +459,9 @@
         lastUpdateTime = submissionData.timestamp;
 
         textInput.value = '';
-        status.textContent = 'Feeling sent successfully!';
-        setTimeout(() => (status.textContent = ''), 3000);
 
       } catch (error) {
-        status.textContent = 'Error sending feeling. Please try again.';
+        // 오류 발생시에도 메시지 표시 안함
       } finally {
         submitButton.disabled = false;
       }
