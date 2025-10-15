@@ -183,7 +183,7 @@
     const FIXED_X_SLOTS = [0, 17.5, 35, 52.5, 70]; // 5 lanes
     const MAX_ELEMENT_WIDTH_PERCENT = 30;
     const ELEMENT_VISUAL_HEIGHT_PERCENT = 9;
-    const START_Y_PERCENT = 100; // 컨테이너 맨 아래
+    const START_Y_PERCENT = 80; // 입력칸 위 적절한 위치
     const HORIZONTAL_JITTER_PERCENT = 5;
     const DOT_MAX_OFFSET_X = 15;
     const DOT_MAX_OFFSET_Y = 5;
@@ -244,8 +244,7 @@
       const newBlockX = fixedX;
       const newBlockRight = newBlockX + MAX_ELEMENT_WIDTH_PERCENT;
 
-      // 입력칸 바로 위까지 떨어지도록 고정값 설정
-      let groundLevel = 100; // 100% 맨 아래
+      let groundLevel = START_Y_PERCENT;
 
       existingData.forEach((data) => {
         if (data.xPos !== undefined && data.yPos !== undefined) {
@@ -257,6 +256,7 @@
       });
 
       let newYPos = groundLevel - ELEMENT_VISUAL_HEIGHT_PERCENT;
+
       let newXPos = fixedX;
       const jitter = Math.random() * 2 * HORIZONTAL_JITTER_PERCENT - HORIZONTAL_JITTER_PERCENT;
       newXPos += jitter;
@@ -264,9 +264,8 @@
       const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
       newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
 
-      // 절대 위로 올리지 않음 - 무조건 아래쪽에만
-      if (newYPos < 90) {
-        newYPos = 100; // 강제로 100% 맨 아래로
+      if (newYPos < 10) {
+        newYPos = 10 + Math.random() * 5;
       }
 
       return { xPos: newXPos, yPos: newYPos };
