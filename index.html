@@ -264,8 +264,9 @@
       const MAX_X_BOUNDARY = 100 - MAX_ELEMENT_WIDTH_PERCENT;
       newXPos = Math.max(0, Math.min(newXPos, MAX_X_BOUNDARY));
 
-      if (newYPos < 10) {
-        newYPos = 10 + Math.random() * 5;
+      // 맨 아래까지 떨어지도록 최소값 제한 제거
+      if (newYPos < 0) {
+        newYPos = START_Y_PERCENT;
       }
 
       return { xPos: newXPos, yPos: newYPos };
