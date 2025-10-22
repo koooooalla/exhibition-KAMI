@@ -566,6 +566,7 @@
           userId: data.userId,
           text: data.text,
           color: data.color,
+          emotion: data.emotion || 'unknown', // 감정 정보 추가
           xPos: data.xPos.toString(),
           yPos: data.yPos.toString(),
           rotation: data.rotation.toString(),
@@ -830,6 +831,7 @@
           id: uuid(),
           text,
           color,
+          emotion: selectedEmotion, // 선택된 감정 추가
           xPos: fixedX,
           yPos: fixedY,
           rotation: fixedRot,
