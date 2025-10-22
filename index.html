@@ -10,7 +10,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Fonts -->
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+KR:wght@900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Noto+Sans+KR:wght@400;500&display=swap"
     rel="stylesheet"
   />
   <style>
@@ -18,7 +18,8 @@
       --current-bg-color: 255, 255, 255; /* White Background (RGB) */
     }
     body {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      font-weight: 400;
       background-color: white;
       overflow: hidden; /* Prevent scrolling from chaotic content */
     }
@@ -105,11 +106,95 @@
     }
 
     input::placeholder {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
     }
     input,
     button {
-      font-family: 'Arial Narrow', 'Noto Sans KR', sans-serif;
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      font-weight: 400;
+    }
+
+    /* Emotion Modal Styles */
+    #emotion-modal-btn {
+      cursor: pointer;
+    }
+    
+    #emotion-modal {
+      backdrop-filter: blur(4px);
+    }
+    
+    .emotion-option {
+      padding: 12px 16px;
+      margin: 2px 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+    
+    .emotion-option:hover {
+      background-color: #f3f4f6;
+      transform: translateX(4px);
+    }
+    
+    .emotion-option.selected {
+      background-color: #4f46e5;
+      color: white;
+      transform: translateX(4px);
+    }
+    
+    .emotion-option.selected:hover {
+      background-color: #3730a3;
+    }
+    
+    /* Modal animation */
+    #emotion-modal:not(.hidden) {
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    
+    @keyframes modalFadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    /* Color Intensity Slider Styles */
+    :root {
+      --slider-thumb-color: #4f46e5;
+      --slider-bg-gradient: linear-gradient(to right, #f3f4f6, #374151);
+    }
+    
+    #color-intensity-slider {
+      background: var(--slider-bg-gradient);
+      border-radius: 4px;
+    }
+    
+    #color-intensity-slider::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--slider-thumb-color);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s ease;
+    }
+    
+    #color-intensity-slider::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--slider-thumb-color);
+      cursor: pointer;
+      border: 2px solid white;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      transition: background 0.2s ease;
     }
   </style>
 </head>
@@ -132,31 +217,118 @@
   <!-- Input Form (Fixed to Bottom) -->
   <div
     class="fixed bottom-0 left-0 right-0 p-4 bg-gray-100 border-t border-gray-300 shadow-2xl z-50"
-    style="min-height: 120px;"
+    style="min-height: 180px;"
   >
     <p id="user-info" class="text-xs text-gray-500 mb-2"></p>
-    <form id="submission-form" class="flex flex-row gap-3 items-center">
-      <input
-        type="text"
-        id="feeling-text"
-        placeholder="What are you feeling right now?"
-        maxlength="300"
-        class="flex-grow p-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
-        required
-      />
-
-      <div class="flex flex-col items-center justify-center flex-shrink-0">
-        <span class="text-xs text-gray-600 whitespace-nowrap mb-1">color</span>
-        <input type="color" id="mood-color-picker" value="#6366f1" required />
+    <form id="submission-form" class="space-y-3">
+      <!-- Text Input -->
+      <div class="flex gap-3">
+        <input
+          type="text"
+          id="feeling-text"
+          placeholder="What are you feeling right now?"
+          maxlength="300"
+          class="flex-grow p-3 rounded-xl bg-white border border-gray-300 text-gray-800 placeholder-gray-500 focus:ring-indigo-500 focus:border-indigo-500"
+          required
+        />
+        <button
+          type="submit"
+          id="submit-button"
+          class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg disabled:opacity-50 flex-shrink-0"
+        >
+          Send
+        </button>
       </div>
 
-      <button
-        type="submit"
-        id="submit-button"
-        class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-xl transition duration-200 shadow-lg disabled:opacity-50 flex-shrink-0"
+      <!-- Emotion Selection -->
+      <div class="flex flex-col gap-2">
+        <span class="text-xs text-gray-600">Select emotion:</span>
+        <button 
+          type="button" 
+          id="emotion-modal-btn" 
+          class="w-full p-3 text-left bg-white border border-gray-300 rounded-xl focus:ring-indigo-500 focus:border-indigo-500 flex justify-between items-center hover:border-gray-400 transition-colors"
+        >
+          <span id="selected-emotion-text" class="text-gray-500">Choose an emotion...</span>
+          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Emotion Modal -->
+      <div 
+        id="emotion-modal" 
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden"
       >
-        Send
-      </button>
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-[80vh] overflow-hidden">
+          <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-800">Choose your emotion</h3>
+            <button 
+              type="button" 
+              id="emotion-modal-close" 
+              class="text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="max-h-96 overflow-y-auto p-2">
+            <div class="emotion-option" data-emotion="joy" data-color="#FFD700">Joy (기쁨)</div>
+            <div class="emotion-option" data-emotion="happiness" data-color="#FFF176">Happiness (행복)</div>
+            <div class="emotion-option" data-emotion="excitement" data-color="#FF4500">Excitement (흥분)</div>
+            <div class="emotion-option" data-emotion="love" data-color="#FF69B4">Love / Affection (사랑)</div>
+            <div class="emotion-option" data-emotion="passion" data-color="#C21807">Passion (열정)</div>
+            <div class="emotion-option" data-emotion="anger" data-color="#B22222">Anger (분노)</div>
+            <div class="emotion-option" data-emotion="frustration" data-color="#FF8C00">Frustration (좌절)</div>
+            <div class="emotion-option" data-emotion="fear" data-color="#4B0082">Fear (두려움)</div>
+            <div class="emotion-option" data-emotion="anxiety" data-color="#556B2F">Anxiety (불안)</div>
+            <div class="emotion-option" data-emotion="sadness" data-color="#1E3A8A">Sadness (슬픔)</div>
+            <div class="emotion-option" data-emotion="disappointment" data-color="#5A6A7F">Disappointment (실망)</div>
+            <div class="emotion-option" data-emotion="loneliness" data-color="#6A5ACD">Loneliness (외로움)</div>
+            <div class="emotion-option" data-emotion="calm" data-color="#87CEEB">Calm / Serenity (평온)</div>
+            <div class="emotion-option" data-emotion="contentment" data-color="#66CDAA">Contentment (만족)</div>
+            <div class="emotion-option" data-emotion="relief" data-color="#98FB98">Relief (안도)</div>
+            <div class="emotion-option" data-emotion="surprise" data-color="#FFD700">Surprise (놀람)</div>
+            <div class="emotion-option" data-emotion="curiosity" data-color="#ADFF2F">Curiosity (호기심)</div>
+            <div class="emotion-option" data-emotion="disgust" data-color="#556B2F">Disgust (혐오)</div>
+            <div class="emotion-option" data-emotion="boredom" data-color="#A9A9A9">Boredom (지루함)</div>
+            <div class="emotion-option" data-emotion="peace" data-color="#E0FFFF">Peace / Acceptance (평화)</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Intensity Control -->
+      <div class="flex flex-col gap-3" id="color-intensity-section" style="display: none;">
+        <div class="flex items-center gap-3">
+          <span class="text-xs text-gray-600 flex-shrink-0">Selected color:</span>
+          <div id="selected-color-preview" class="w-8 h-8 rounded-full border-2 border-gray-300 bg-gray-100"></div>
+          <span id="selected-emotion-name" class="text-sm font-medium text-gray-700"></span>
+        </div>
+        
+        <div class="flex flex-col gap-2">
+          <span class="text-xs text-gray-600">Adjust color intensity:</span>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-gray-500">Light</span>
+            <input 
+              type="range" 
+              id="color-intensity-slider" 
+              min="1" 
+              max="100" 
+              step="1" 
+              value="100"
+              class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+            />
+            <span class="text-xs text-gray-500">Dark</span>
+          </div>
+          <div class="text-center">
+            <span id="intensity-value" class="text-xs text-gray-600">100%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hidden color input for form submission -->
+      <input type="hidden" id="final-color" value="#6366f1" />
     </form>
     <p id="message-status" class="text-xs mt-2 text-center text-red-600"></p>
   </div>
@@ -196,6 +368,7 @@
     let lastUpdateTime = 0;
     let pollingInterval;
     let isConnected = false;
+    let selectedEmotion = null;
 
     /******************
      * HELPER FUNCTIONS
@@ -205,7 +378,7 @@
       const r = (bigint >> 16) & 255;
       const g = (bigint >> 8) & 255;
       const b = bigint & 255;
-      return `${r}, ${g}, ${b}`;
+      return [r, g, b];
     }
 
     function generateUserId() {
@@ -234,6 +407,71 @@
       body.style.setProperty('--current-bg-color', `${r}, ${g}, ${b}`);
       body.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
     }
+
+    // HSL 색상 조정 함수
+    function hexToHsl(hex) {
+      const r = parseInt(hex.slice(1, 3), 16) / 255;
+      const g = parseInt(hex.slice(3, 5), 16) / 255;
+      const b = parseInt(hex.slice(5, 7), 16) / 255;
+
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      let h, s, l;
+
+      l = (max + min) / 2;
+
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+
+      return [h * 360, s * 100, l * 100];
+    }
+
+    function hslToHex(h, s, l) {
+      h /= 360;
+      s /= 100;
+      l /= 100;
+
+      const hue2rgb = (p, q, t) => {
+        if (t < 0) t += 1;
+        if (t > 1) t -= 1;
+        if (t < 1/6) return p + (q - p) * 6 * t;
+        if (t < 1/2) return q;
+        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+        return p;
+      };
+
+      let r, g, b;
+
+      if (s === 0) {
+        r = g = b = l;
+      } else {
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        const p = 2 * l - q;
+        r = hue2rgb(p, q, h + 1/3);
+        g = hue2rgb(p, q, h);
+        b = hue2rgb(p, q, h - 1/3);
+      }
+
+      const toHex = (c) => {
+        const hex = Math.round(c * 255).toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+
 
     /**********************
      * STACKING CALCULATION
@@ -416,19 +654,168 @@
     }
 
     /*******************
+     * COLOR PALETTE GENERATION
+     *******************/
+    
+    // 컬러 강도 조절 함수 (투명도 기반)
+    function adjustColorIntensity(baseColor, intensityPercent) {
+      // intensityPercent: 1 (매우 투명) ~ 100 (완전 불투명)
+      if (!baseColor) return baseColor;
+      
+      const opacity = intensityPercent / 100; // 0.01 ~ 1.0으로 변환
+      
+      // 메인 컬러는 그대로 유지하고 투명도만 조절
+      const [r, g, b] = hexToRgb(baseColor);
+      return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+    }
+    
+    function rgbToHex(r, g, b) {
+      const toHex = (c) => {
+        const hex = c.toString(16);
+        return hex.length === 1 ? '0' + hex : hex;
+      };
+      return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+
+    /*******************
+     * EMOTION & COLOR SELECTION
+     *******************/
+    function initializeEmotionSelection() {
+      const modalBtn = document.getElementById('emotion-modal-btn');
+      const modal = document.getElementById('emotion-modal');
+      const modalClose = document.getElementById('emotion-modal-close');
+      const selectedEmotionText = document.getElementById('selected-emotion-text');
+      const emotionOptions = document.querySelectorAll('.emotion-option');
+      const colorIntensitySection = document.getElementById('color-intensity-section');
+      const selectedColorPreview = document.getElementById('selected-color-preview');
+      const selectedEmotionName = document.getElementById('selected-emotion-name');
+      const intensitySlider = document.getElementById('color-intensity-slider');
+      const intensityValue = document.getElementById('intensity-value');
+      const finalColorInput = document.getElementById('final-color');
+      
+      let baseColor = null;
+
+      // 슬라이더 스타일 업데이트 함수
+      function updateSliderAppearance() {
+        if (!baseColor) return;
+        
+        // 슬라이더 배경을 선택된 컬러의 그라데이션으로 설정
+        // 왼쪽(1%): 매우 투명한 색상, 오른쪽(100%): 완전한 원본 색상
+        const [r, g, b] = hexToRgb(baseColor);
+        const lightColor = `rgba(${r}, ${g}, ${b}, 0.1)`; // 10% 투명도
+        const fullColor = `rgba(${r}, ${g}, ${b}, 1.0)`;   // 완전 불투명
+        
+        const gradient = `linear-gradient(to right, ${lightColor}, ${fullColor})`;
+        document.documentElement.style.setProperty('--slider-bg-gradient', gradient);
+        
+        // 현재 슬라이더 위치에 따른 thumb 색상 계산
+        const intensityPercent = parseInt(intensitySlider.value);
+        const thumbOpacity = intensityPercent / 100;
+        const thumbColor = `rgba(${r}, ${g}, ${b}, ${thumbOpacity})`;
+        
+        document.documentElement.style.setProperty('--slider-thumb-color', thumbColor);
+      }
+
+      // 강도 조절 함수 (투명도 기반)
+      function updateColorIntensity() {
+        if (!baseColor) return;
+        
+        const intensityPercent = parseInt(intensitySlider.value); // 1~100
+        const adjustedColor = adjustColorIntensity(baseColor, intensityPercent);
+        
+        selectedColorPreview.style.backgroundColor = adjustedColor;
+        intensityValue.textContent = intensityPercent + '%';
+        
+        // 슬라이더 외형 업데이트
+        updateSliderAppearance();
+        
+        // 폼 제출용으로는 원본 HEX 색상 유지 (투명도 정보는 별도 처리)
+        if (intensityPercent === 100) {
+          finalColorInput.value = baseColor;
+        } else {
+          finalColorInput.value = adjustedColor;
+        }
+      }
+
+      // 슬라이더 이벤트
+      intensitySlider.addEventListener('input', updateColorIntensity);
+
+      // 모달 열기
+      modalBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // 배경 스크롤 방지
+      });
+
+      // 모달 닫기 함수
+      function closeModal() {
+        modal.classList.add('hidden');
+        document.body.style.overflow = ''; // 배경 스크롤 복원
+      }
+
+      // 닫기 버튼 클릭
+      modalClose.addEventListener('click', closeModal);
+
+      // 모달 배경 클릭시 닫기
+      modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+          closeModal();
+        }
+      });
+
+      // ESC 키로 모달 닫기
+      document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !modal.classList.contains('hidden')) {
+          closeModal();
+        }
+      });
+
+      // 감정 옵션 클릭 이벤트
+      emotionOptions.forEach(option => {
+        option.addEventListener('click', () => {
+          // 기존 선택 해제
+          emotionOptions.forEach(o => o.classList.remove('selected'));
+          
+          // 새로운 선택
+          option.classList.add('selected');
+          selectedEmotion = option.dataset.emotion;
+          baseColor = option.dataset.color;
+          
+          selectedEmotionText.textContent = option.textContent;
+          selectedEmotionText.classList.remove('text-gray-500');
+          selectedEmotionText.classList.add('text-gray-800');
+          
+          selectedEmotionName.textContent = option.textContent;
+          
+          // 모달 닫기
+          closeModal();
+          
+          // 컬러 강도 조절 UI 표시
+          colorIntensitySection.style.display = 'flex';
+          
+          // 슬라이더를 기본값(100%)으로 리셋
+          intensitySlider.value = '100';
+          
+          // 초기 컬러 설정 및 슬라이더 외형 업데이트
+          updateColorIntensity();
+        });
+      });
+    }
+
+    /*******************
      * FORM SUBMISSION
      *******************/
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const textInput = document.getElementById('feeling-text');
-      const colorInput = document.getElementById('mood-color-picker');
+      const finalColorInput = document.getElementById('final-color');
       const submitButton = document.getElementById('submit-button');
 
       const text = textInput.value.trim();
-      const color = colorInput.value;
+      const color = finalColorInput.value;
 
-      if (!text || !color) {
+      if (!text || !selectedEmotion || !color) {
+        status.textContent = '감정, 텍스트, 컬러를 모두 선택해주세요.';
         return;
       }
 
@@ -461,9 +848,24 @@
         lastUpdateTime = submissionData.timestamp;
 
         textInput.value = '';
+        
+        // 감정 선택 상태 초기화
+        document.querySelectorAll('.emotion-option').forEach(option => option.classList.remove('selected'));
+        document.getElementById('color-intensity-section').style.display = 'none';
+        document.getElementById('selected-color-preview').style.backgroundColor = '#f3f4f6';
+        document.getElementById('selected-emotion-text').textContent = 'Choose an emotion...';
+        document.getElementById('selected-emotion-text').classList.remove('text-gray-800');
+        document.getElementById('selected-emotion-text').classList.add('text-gray-500');
+        document.getElementById('selected-emotion-name').textContent = '';
+        document.getElementById('color-intensity-slider').value = '100';
+        document.getElementById('intensity-value').textContent = '100%';
+        document.getElementById('emotion-modal').classList.add('hidden');
+        document.body.style.overflow = ''; // 배경 스크롤 복원
+        selectedEmotion = null;
+        status.textContent = '';
 
       } catch (error) {
-        // 오류 발생시에도 메시지 표시 안함
+        status.textContent = '전송 중 오류가 발생했습니다.';
       } finally {
         submitButton.disabled = false;
       }
@@ -475,6 +877,9 @@
     function initialize() {
       ensureInitialBackground();
       updateConnectionStatus();
+      
+      // 감정 선택 기능 초기화
+      initializeEmotionSelection();
       
       // 폴링 시작
       startPolling();
